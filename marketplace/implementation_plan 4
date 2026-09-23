@@ -1,0 +1,75 @@
+# Implementation Plan - Cloudflare Workers & D1 Migration
+
+Adapt the Telegram Mini App Marketplace to run on **Cloudflare Workers** with **Cloudflare D1** (serverless SQL database), enabling instant one-command deployment (`npx wrangler deploy`) with free HTTPS hosting for Telegram Mini Apps.
+
+## Architecture Overview
+
+```mermaid
+graph TD
+  TelegramApp[Telegram Mini App / Browser Client] -->|HTTPS Fetch| CFWorker[Cloudflare Worker / Hono API]
+  CFWorker -->|Static Asset Serving| Dist[Vite Built Dist / Assets]
+  CFWorker -->|D1 SQL Queries| CFD1[(Cloudflare D1 Database)]
+```
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Cloudflare Services Used**:
+> - **Cloudflare Workers / Assets**: Serves the Vite React frontend static bundle + API endpoints on a global edge network.
+> - **Cloudflare D1**: Serverless SQLite-compatible database binding (`env.DB`).
+> - **Wrangler**: CLI tool used to test locally (`npx wrangler dev`) and deploy to production (`npx wrangler deploy`).
+
+---
+
+## Proposed Changes
+
+### Configuration & Dependencies (`marketplace/`)
+
+#### [MODIFY] [package.json](file:///c:/Users/Jalaj%20Legion/Documents/Telegram%20Mini%20App/marketplace/package.json)
+- Add `hono` (modern lightweight Web API framework for Cloudflare Workers) and `wrangler` CLI dependency.
+- Add scripts: `npm run wrangler:dev` (runs Cloudflare Workers + D1 simulation locally) and `npm run deploy` (deploys to Cloudflare Workers).
+
+#### [NEW] [wrangler.json](file:///c:/Users/Jalaj%20Legion/Documents/Telegram%20Mini%20App/marketplace/wrangler.json)
+- Define Cloudflare Worker entry point (`server/worker.js`).
+- Define Cloudflare D1 database binding (`binding: "DB"`, `database_name: "tg-marketplace-db"`).
+- Configure static asset binding (`assets: { directory: "./dist" }`).
+
+#### [NEW] [schema.sql](file:///c:/Users/Jalaj%20Legion/Documents/Telegram%20Mini%20App/marketplace/schema.sql)
+- D1 SQL migration script for `users` and `products` tables + sample product seed data.
+
+---
+
+### Worker API Layer (`marketplace/server/`)
+
+#### [NEW] [worker.js](file:///c:/Users/Jalaj%20Legion/Documents/Telegram%20Mini%20App/marketplace/server/worker.js)
+- Cloudflare Worker backend using Hono framework:
+  - Telegram HMAC signature authentication middleware (`c.req.header('x-telegram-init-data')`).
+  - `GET /api/user/me`: Returns Telegram user profile and listed products from D1.
+  - `GET /api/products`: Search, category/price/location filtering, and sorting powered by D1 SQL prepared statements.
+  - `GET /api/products/:id`: Fetch single product & increment D1 view counter.
+  - `POST /api/products`: Create listing in D1.
+  - `PUT /api/products/:id`: Update listing in D1 with creator ownership enforcement.
+  - `DELETE /api/products/:id`: Delete listing in D1 with creator ownership enforcement.
+  - `POST /api/upload`: Process image uploads (base64 / data URIs).
+
+---
+
+### Project Documentation (`marketplace/`)
+
+#### [MODIFY] [Implementation.md](file:///c:/Users/Jalaj%20Legion/Documents/Telegram%20Mini%20App/marketplace/Implementation.md)
+- Update implementation documentation to include Cloudflare Workers & D1 setup & deployment instructions.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+1. `npx wrangler d1 execute tg-marketplace-db --local --file=schema.sql` to initialize local D1 database.
+2. `npm run build` to verify React Vite production compilation.
+3. `npx wrangler dev` to start Cloudflare Worker local emulator and verify API routes return 200 OK.
+
+### Manual Verification
+1. Test creating, searching, sorting, and editing products against local Cloudflare D1 simulation.
+2. Verify Telegram Mini App authentication & link sharing work on Cloudflare Worker URL.

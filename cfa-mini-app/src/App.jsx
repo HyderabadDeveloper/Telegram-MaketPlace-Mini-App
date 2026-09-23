@@ -1,35 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
+import QuizSetup from './components/QuizSetup';
 import Quiz from './components/Quiz';
 import QuizResult from './components/QuizResult';
+import Learn from './components/Learn';
 import BottomNav from './components/BottomNav';
+import { loadUserProgress, fetchUserProgressFromD1, recordQuizCompletion } from './utils/storage';
+import { getFilteredQuestions } from './data/quizData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState('dark');
   const [telegramUser, setTelegramUser] = useState(null);
+  
+  // Persistent User Progress state
+  const [userProgress, setUserProgress] = useState(loadUserProgress(null));
+
+  // Active quiz session state
+  const [activeQuizQuestions, setActiveQuizQuestions] = useState([]);
+  const [activeQuizMeta, setActiveQuizMeta] = useState({ mode: 'practice', topicName: 'Mixed Mock' });
   const [quizResults, setQuizResults] = useState(null);
 
-  const [userStats, setUserStats] = useState({
-    accuracy: 78,
-    solvedTotal: 41,
-    dailyCompleted: 5,
-    dailyTarget: 10,
-    streak: 5
-  });
-
-  // Initialize Telegram WebApp
+  // Initialize Telegram WebApp SDK & Sync Cloudflare D1 User Database
   useEffect(() => {
+    let tgUser = null;
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
 
       if (tg.initDataUnsafe?.user) {
-        setTelegramUser(tg.initDataUnsafe.user);
+        tgUser = tg.initDataUnsafe.user;
+        setTelegramUser(tgUser);
       }
     }
+
+    // Load / Sync User Progress from D1 / LocalStorage
+    fetchUserProgressFromD1(tgUser).then((syncedData) => {
+      if (syncedData) {
+        setUserProgress(syncedData);
+      }
+    });
   }, []);
 
   const toggleTheme = () => {
@@ -38,32 +50,21 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', nextTheme);
   };
 
-  const handleStartQuiz = () => {
+  const handleOpenSetup = () => {
+    setActiveTab('setup');
+  };
+
+  const handleStartCustomQuiz = ({ topicId, count, mode, topicName }) => {
+    const questions = getFilteredQuestions(topicId, count);
+    setActiveQuizQuestions(questions);
+    setActiveQuizMeta({ mode, topicName });
     setActiveTab('quiz');
   };
 
   const handleQuizComplete = (results) => {
     setQuizResults(results);
-
-    // Update stats dynamically
-    let correct = 0;
-    results.questions.forEach((q, idx) => {
-      if (results.selectedAnswers[idx] === q.correctIndex) {
-        correct++;
-      }
-    });
-
-    setUserStats((prev) => {
-      const newTotal = prev.solvedTotal + results.questions.length;
-      const newDaily = prev.dailyCompleted + results.questions.length;
-      return {
-        ...prev,
-        solvedTotal: newTotal,
-        dailyCompleted: newDaily,
-        accuracy: Math.round(((prev.accuracy * prev.solvedTotal + (correct / results.questions.length) * 100 * results.questions.length) / newTotal))
-      };
-    });
-
+    const updated = recordQuizCompletion(results, activeQuizMeta.mode, activeQuizMeta.topicName, telegramUser);
+    setUserProgress(updated);
     setActiveTab('results');
   };
 
@@ -73,11 +74,11 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Header is shown on dashboard and results */}
+      {/* Header is shown on dashboard, setup, learn, and results */}
       {activeTab !== 'quiz' && (
         <Header 
           telegramUser={telegramUser} 
-          streak={userStats.streak} 
+          streak={userProgress.streak} 
           theme={theme} 
           toggleTheme={toggleTheme} 
         />
@@ -87,13 +88,21 @@ export default function App() {
       <main style={{ flex: 1 }}>
         {activeTab === 'dashboard' && (
           <Dashboard 
-            onStartQuiz={handleStartQuiz} 
-            userStats={userStats} 
+            onStartQuiz={handleOpenSetup} 
+            userProgress={userProgress} 
+          />
+        )}
+
+        {activeTab === 'setup' && (
+          <QuizSetup 
+            onStartQuiz={handleStartCustomQuiz} 
           />
         )}
 
         {activeTab === 'quiz' && (
           <Quiz 
+            questions={activeQuizQuestions}
+            mode={activeQuizMeta.mode}
             onQuizComplete={handleQuizComplete} 
             onExit={handleGoHome} 
           />
@@ -102,18 +111,22 @@ export default function App() {
         {activeTab === 'results' && quizResults && (
           <QuizResult 
             results={quizResults} 
-            onRestartQuiz={handleStartQuiz} 
+            onRestartQuiz={handleOpenSetup} 
             onGoHome={handleGoHome} 
           />
+        )}
+
+        {activeTab === 'learn' && (
+          <Learn />
         )}
       </main>
 
       {/* Bottom Navigation */}
       {activeTab !== 'quiz' && (
         <BottomNav 
-          activeTab={activeTab} 
+          activeTab={activeTab === 'setup' ? 'quiz' : activeTab} 
           setActiveTab={setActiveTab} 
-          onStartQuiz={handleStartQuiz} 
+          onStartQuiz={handleOpenSetup} 
         />
       )}
     </div>

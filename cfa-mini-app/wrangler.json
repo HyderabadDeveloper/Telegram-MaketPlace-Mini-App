@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cfa-mini-app",
+  "main": "functions/api/user-progress.js",
+  "compatibility_date": "2026-09-22",
+  "assets": {
+    "directory": "./dist"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cfa-mini-app-db",
+      "database_id": "cfa-mini-app-d1-local"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, BookOpen, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, GraduationCap } from 'lucide-react';
 
 export default function BottomNav({ activeTab, setActiveTab, onStartQuiz }) {
   const handleTabClick = (tabKey) => {
@@ -21,7 +21,7 @@ export default function BottomNav({ activeTab, setActiveTab, onStartQuiz }) {
       </button>
 
       <button 
-        className={`nav-item ${activeTab === 'quiz' ? 'active' : ''}`}
+        className={`nav-item ${activeTab === 'quiz' || activeTab === 'setup' ? 'active' : ''}`}
         onClick={() => handleTabClick('quiz')}
       >
         <BookOpen size={20} />
@@ -29,11 +29,11 @@ export default function BottomNav({ activeTab, setActiveTab, onStartQuiz }) {
       </button>
 
       <button 
-        className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
-        onClick={() => handleTabClick('dashboard')}
+        className={`nav-item ${activeTab === 'learn' ? 'active' : ''}`}
+        onClick={() => handleTabClick('learn')}
       >
-        <BarChart2 size={20} />
-        <span>Analytics</span>
+        <GraduationCap size={20} />
+        <span>Learn</span>
       </button>
     </nav>
   );

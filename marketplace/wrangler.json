@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tg-marketplace-mini-app",
+  "main": "server/worker.js",
+  "compatibility_date": "2024-09-23",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tg-marketplace-db",
+      "database_id": "868cfb9d-d997-48f9-80ca-2b01ed5b49be"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES_BUCKET",
+      "bucket_name": "tg-marketplace-images"
+    }
+  ]
+}

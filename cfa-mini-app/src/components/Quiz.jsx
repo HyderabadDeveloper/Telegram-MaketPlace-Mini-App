@@ -8,18 +8,18 @@ import {
   XCircle,
   ArrowLeft
 } from 'lucide-react';
-import { CFA_QUIZ_QUESTIONS } from '../data/quizData';
 
-export default function Quiz({ onQuizComplete, onExit }) {
+export default function Quiz({ questions, mode = 'practice', onQuizComplete, onExit }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [flaggedQuestions, setFlaggedQuestions] = useState({});
   const [showExplanation, setShowExplanation] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
-  const currentQ = CFA_QUIZ_QUESTIONS[currentIndex];
-  const totalQ = CFA_QUIZ_QUESTIONS.length;
+  const currentQ = questions[currentIndex] || questions[0];
+  const totalQ = questions.length;
   const currentSelected = selectedAnswers[currentIndex];
+  const isExamMode = mode === 'exam';
 
   // Timer effect
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function Quiz({ onQuizComplete, onExit }) {
   };
 
   const handleSelectOption = (index) => {
-    if (currentSelected !== undefined) return; // Allow selecting once
+    if (!isExamMode && currentSelected !== undefined) return; // In Practice mode, lock after selection
     setSelectedAnswers((prev) => ({
       ...prev,
       [currentIndex]: index
@@ -55,11 +55,10 @@ export default function Quiz({ onQuizComplete, onExit }) {
     if (currentIndex < totalQ - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Finish quiz
       onQuizComplete({
         selectedAnswers,
         timeSpent: secondsElapsed,
-        questions: CFA_QUIZ_QUESTIONS
+        questions
       });
     }
   };
@@ -70,12 +69,13 @@ export default function Quiz({ onQuizComplete, onExit }) {
     <div className="quiz-container">
       {/* Top Header Bar */}
       <div className="quiz-top-bar">
-        <button className="icon-btn" onClick={onExit} title="Exit Quiz">
+        <button className="icon-btn" onClick={onExit} title="Exit Session">
           <ArrowLeft size={18} />
         </button>
 
         <div className="quiz-progress-text">
           Question <span style={{ color: '#F8FAFC' }}>{currentIndex + 1}</span> of {totalQ}
+          {isExamMode && <span style={{ fontSize: '11px', color: '#F59E0B', marginLeft: '6px' }}>(Exam Mode)</span>}
         </div>
 
         <div className="quiz-timer">
@@ -88,7 +88,10 @@ export default function Quiz({ onQuizComplete, onExit }) {
       <div className="progress-track">
         <div 
           className="progress-fill" 
-          style={{ width: `${((currentIndex + 1) / totalQ) * 100}%` }}
+          style={{ 
+            width: `${((currentIndex + 1) / totalQ) * 100}%`,
+            background: isExamMode ? 'linear-gradient(90deg, #F59E0B, #EF4444)' : 'linear-gradient(90deg, #3B82F6, #10B981)'
+          }}
         />
       </div>
 
@@ -115,14 +118,20 @@ export default function Quiz({ onQuizComplete, onExit }) {
             const isAnswered = currentSelected !== undefined;
 
             let statusClass = '';
-            if (isAnswered) {
-              if (isCorrectOption) {
-                statusClass = 'correct';
-              } else if (isSelected && !isCorrectOption) {
-                statusClass = 'incorrect';
+            if (isExamMode) {
+              // Exam Mode: Only show 'selected' highlight, no green/red feedback
+              if (isSelected) statusClass = 'selected';
+            } else {
+              // Practice Mode: Show immediate correct/incorrect feedback
+              if (isAnswered) {
+                if (isCorrectOption) {
+                  statusClass = 'correct';
+                } else if (isSelected && !isCorrectOption) {
+                  statusClass = 'incorrect';
+                }
+              } else if (isSelected) {
+                statusClass = 'selected';
               }
-            } else if (isSelected) {
-              statusClass = 'selected';
             }
 
             return (
@@ -130,14 +139,15 @@ export default function Quiz({ onQuizComplete, onExit }) {
                 key={optIdx}
                 className={`option-btn ${statusClass}`}
                 onClick={() => handleSelectOption(optIdx)}
-                disabled={isAnswered}
               >
                 <div className="option-letter">{letters[optIdx]}</div>
                 <div style={{ flex: 1 }}>{optText}</div>
-                {isAnswered && isCorrectOption && (
+                
+                {/* Icons only shown in Practice Mode */}
+                {!isExamMode && isAnswered && isCorrectOption && (
                   <CheckCircle size={18} color="#10B981" />
                 )}
-                {isAnswered && isSelected && !isCorrectOption && (
+                {!isExamMode && isAnswered && isSelected && !isCorrectOption && (
                   <XCircle size={18} color="#EF4444" />
                 )}
               </button>
@@ -145,8 +155,8 @@ export default function Quiz({ onQuizComplete, onExit }) {
           })}
         </div>
 
-        {/* Explanation Toggle & Content */}
-        {currentSelected !== undefined && (
+        {/* Practice Mode Explanation Box */}
+        {!isExamMode && currentSelected !== undefined && (
           <div style={{ marginTop: '4px' }}>
             {!showExplanation ? (
               <button 
@@ -155,7 +165,7 @@ export default function Quiz({ onQuizComplete, onExit }) {
                 style={{ fontSize: '13px', padding: '10px' }}
               >
                 <HelpCircle size={15} color="#3B82F6" />
-                View Explanation & CFA Rationale
+                View Explanation & Formula Breakdown
               </button>
             ) : (
               <div className="explanation-box">
@@ -173,7 +183,7 @@ export default function Quiz({ onQuizComplete, onExit }) {
       {/* Footer Navigation Button */}
       {currentSelected !== undefined && (
         <button className="primary-btn" onClick={handleNext}>
-          {currentIndex < totalQ - 1 ? 'Next Question' : 'View Quiz Results'}
+          {currentIndex < totalQ - 1 ? 'Next Question' : 'Submit & View Score'}
           <ChevronRight size={18} />
         </button>
       )}
