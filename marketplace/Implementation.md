@@ -1,5 +1,5 @@
 # Telegram Mini App Marketplace - Implementation & Deployment Guide
-
+Telegram Mini App for sharing/selling digital & offline products
 This project is a mobile-first **Telegram Mini App Marketplace** built with React, Vite, Express, SQLite, and adapted for deployment to **Cloudflare Workers** with **Cloudflare D1**.
 
 ---
