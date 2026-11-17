@@ -1,16 +1,20 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cfa-mini-app",
-  "main": "functions/api/user-progress.js",
-  "compatibility_date": "2026-09-22",
-  "assets": {
-    "directory": "./dist"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "cfa-mini-app-db",
-      "database_id": "cfa-mini-app-d1-local"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cfa-mini-app",
+	"main": "worker.js",
+	"compatibility_date": "2026-09-22",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application",
+		"run_worker_first": ["/api/*"]
+	},
+	"d1_databases": [
+		{
+			"binding": "cfa_mini_app_db",
+			"database_name": "cfa-mini-app-db",
+			"database_id": "07fd63fb-fff6-41ed-a468-060b634ebb48",
+			"remote": true
+		}
+	]
 }

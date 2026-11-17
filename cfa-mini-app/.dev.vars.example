@@ -1,0 +1,3 @@
+# Copy this file to .dev.vars and replace the placeholder locally.
+# Do not commit .dev.vars.
+QUESTION_API_KEY=cfa_live_replace_with_your_key

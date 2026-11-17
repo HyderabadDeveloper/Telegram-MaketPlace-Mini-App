@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "preview": "npm run build && wrangler dev --config wrangler.json",
+    "dev:worker": "npm run build && wrangler dev --config wrangler.json",
+    "deploy": "npm run build && wrangler deploy --config wrangler.json"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

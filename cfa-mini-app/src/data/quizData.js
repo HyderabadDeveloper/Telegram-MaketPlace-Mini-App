@@ -531,12 +531,12 @@ export const CFA_QUIZ_QUESTIONS = [
 ];
 
 export const TOPICS_LIST = [
-  { id: "all", name: "All Topics (Mixed Mock)", count: 40, icon: "Layers", desc: "Full exam mixture of all 5 topics" },
-  { id: "Ethics & Professional Standards", name: "Ethics & Professional Standards", count: 8, icon: "ShieldCheck", desc: "Code of Ethics, Standards I-VII, GIPS" },
-  { id: "Quantitative Methods", name: "Quantitative Methods", count: 8, icon: "Calculator", desc: "TVM, Statistics, Probability, Hypothesis Testing" },
-  { id: "Financial Statement Analysis", name: "Financial Statement Analysis", count: 8, icon: "FileText", desc: "Income Statements, Balance Sheets, Cash Flows" },
-  { id: "Equity Investments", name: "Equity Investments", count: 8, icon: "TrendingUp", desc: "Valuation, DDM, DuPont, Market Structure" },
-  { id: "Fixed Income & Derivatives", name: "Fixed Income & Derivatives", count: 8, icon: "PieChart", desc: "Bond Pricing, Duration, Swaps & Options" }
+  { id: "all", name: "All Topics (Mixed Mock)", icon: "Layers", desc: "Full exam mixture of all 5 topics" },
+  { id: "Ethics & Professional Standards", name: "Ethics & Professional Standards", icon: "ShieldCheck", desc: "Code of Ethics, Standards I-VII, GIPS" },
+  { id: "Quantitative Methods", name: "Quantitative Methods", icon: "Calculator", desc: "TVM, Statistics, Probability, Hypothesis Testing" },
+  { id: "Financial Statement Analysis", name: "Financial Statement Analysis", icon: "FileText", desc: "Income Statements, Balance Sheets, Cash Flows" },
+  { id: "Equity Investments", name: "Equity Investments", icon: "TrendingUp", desc: "Valuation, DDM, DuPont, Market Structure" },
+  { id: "Fixed Income & Derivatives", name: "Fixed Income & Derivatives", icon: "PieChart", desc: "Bond Pricing, Duration, Swaps & Options" }
 ];
 
 export function getFilteredQuestions(topicId, count) {

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { TOPICS_LIST } from '../data/quizData';
 
-export default function QuizSetup({ onStartQuiz }) {
+export default function QuizSetup({ onStartQuiz, isLoading = false, error = '' }) {
   const [selectedTopic, setSelectedTopic] = useState('all');
   const [questionCount, setQuestionCount] = useState(5);
   const [quizMode, setQuizMode] = useState('practice'); // 'practice' | 'exam'
@@ -33,12 +33,12 @@ export default function QuizSetup({ onStartQuiz }) {
   };
 
   const selectedTopicObj = TOPICS_LIST.find(t => t.id === selectedTopic) || TOPICS_LIST[0];
-  const maxAvailable = selectedTopicObj.count;
-  const countOptions = [5, 10, 15, 20].filter(c => c <= maxAvailable);
+  const countOptions = [5, 10, 15, 20];
 
   const estMins = Math.round(questionCount * 1.5);
 
   const handleLaunch = () => {
+    if (isLoading) return;
     onStartQuiz({
       topicId: selectedTopic,
       count: questionCount,
@@ -185,10 +185,7 @@ export default function QuizSetup({ onStartQuiz }) {
               <div 
                 key={t.id}
                 className={`glass-card`}
-                onClick={() => {
-                  setSelectedTopic(t.id);
-                  if (questionCount > t.count) setQuestionCount(t.count);
-                }}
+                onClick={() => setSelectedTopic(t.id)}
                 style={{
                   padding: '16px',
                   display: 'flex',
@@ -216,10 +213,7 @@ export default function QuizSetup({ onStartQuiz }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: isSelected ? '#3B82F6' : '#94A3B8' }}>
-                    {t.count} Qs
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                   <div 
                     style={{
                       width: '18px',
@@ -287,9 +281,11 @@ export default function QuizSetup({ onStartQuiz }) {
       </div>
 
       {/* Start Button */}
-      <button className="primary-btn" onClick={handleLaunch} style={{ padding: '16px', fontSize: '16px' }}>
+      {error && <div role="alert" style={{ color: '#FCA5A5', fontSize: '13px', textAlign: 'center' }}>{error}</div>}
+
+      <button className="primary-btn" onClick={handleLaunch} disabled={isLoading} style={{ padding: '16px', fontSize: '16px', opacity: isLoading ? 0.7 : 1 }}>
         <Play size={18} fill="#FFFFFF" />
-        Start {quizMode === 'exam' ? 'Exam' : 'Practice'} Session ({questionCount} Qs)
+        {isLoading ? 'Loading Questions…' : `Start ${quizMode === 'exam' ? 'Exam' : 'Practice'} Session (${questionCount} Qs)`}
         <ChevronRight size={18} />
       </button>
     </div>

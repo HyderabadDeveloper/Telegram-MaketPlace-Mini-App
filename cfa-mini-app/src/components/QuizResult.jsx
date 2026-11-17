@@ -10,6 +10,7 @@ import {
   Award,
   ChevronDown
 } from 'lucide-react';
+import ExplanationText from './ExplanationText';
 
 export default function QuizResult({ results, onRestartQuiz, onGoHome }) {
   const { selectedAnswers, timeSpent, questions } = results;
@@ -139,7 +140,7 @@ export default function QuizResult({ results, onRestartQuiz, onGoHome }) {
 
                 <div className="explanation-box" style={{ marginTop: '6px' }}>
                   <div className="explanation-title">Explanation</div>
-                  <div>{q.explanation}</div>
+                  <ExplanationText>{q.explanation}</ExplanationText>
                 </div>
               </div>
             );

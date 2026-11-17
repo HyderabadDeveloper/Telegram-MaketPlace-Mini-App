@@ -7,7 +7,6 @@ import QuizResult from './components/QuizResult';
 import Learn from './components/Learn';
 import BottomNav from './components/BottomNav';
 import { loadUserProgress, fetchUserProgressFromD1, recordQuizCompletion } from './utils/storage';
-import { getFilteredQuestions } from './data/quizData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -21,6 +20,8 @@ export default function App() {
   const [activeQuizQuestions, setActiveQuizQuestions] = useState([]);
   const [activeQuizMeta, setActiveQuizMeta] = useState({ mode: 'practice', topicName: 'Mixed Mock' });
   const [quizResults, setQuizResults] = useState(null);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [questionLoadError, setQuestionLoadError] = useState('');
 
   // Initialize Telegram WebApp SDK & Sync Cloudflare D1 User Database
   useEffect(() => {
@@ -54,11 +55,33 @@ export default function App() {
     setActiveTab('setup');
   };
 
-  const handleStartCustomQuiz = ({ topicId, count, mode, topicName }) => {
-    const questions = getFilteredQuestions(topicId, count);
-    setActiveQuizQuestions(questions);
-    setActiveQuizMeta({ mode, topicName });
-    setActiveTab('quiz');
+  const handleStartCustomQuiz = async ({ topicId, count, mode, topicName }) => {
+    setIsLoadingQuestions(true);
+    setQuestionLoadError('');
+
+    try {
+      const params = new URLSearchParams({ topic: topicId, count: String(count) });
+      const response = await fetch(`/api/questions?${params}`);
+      const contentType = response.headers.get('content-type') || '';
+
+      if (!contentType.includes('application/json')) {
+        throw new Error('The questions endpoint is unavailable. Deploy the Worker with `npm run deploy` and try again.');
+      }
+
+      const data = await response.json();
+
+      if (!response.ok || !Array.isArray(data.questions) || data.questions.length === 0) {
+        throw new Error(data.error || 'No questions were returned.');
+      }
+
+      setActiveQuizQuestions(data.questions);
+      setActiveQuizMeta({ mode, topicName });
+      setActiveTab('quiz');
+    } catch (error) {
+      setQuestionLoadError(error.message || 'Unable to load questions. Please try again.');
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   };
 
   const handleQuizComplete = (results) => {
@@ -95,7 +118,9 @@ export default function App() {
 
         {activeTab === 'setup' && (
           <QuizSetup 
-            onStartQuiz={handleStartCustomQuiz} 
+            onStartQuiz={handleStartCustomQuiz}
+            isLoading={isLoadingQuestions}
+            error={questionLoadError}
           />
         )}
 

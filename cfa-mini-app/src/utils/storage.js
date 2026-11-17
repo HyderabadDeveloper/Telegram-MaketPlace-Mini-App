@@ -87,7 +87,8 @@ export async function fetchUserProgressFromD1(telegramUser) {
 
   try {
     const res = await fetch(`/api/user-progress?telegram_id=${telegramId}&first_name=${encodeURIComponent(firstName)}&username=${encodeURIComponent(username)}`);
-    if (res.ok) {
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
       const d1Data = await res.json();
       if (d1Data && !d1Data.error) {
         const merged = {

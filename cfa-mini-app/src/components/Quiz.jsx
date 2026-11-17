@@ -8,6 +8,7 @@ import {
   XCircle,
   ArrowLeft
 } from 'lucide-react';
+import ExplanationText from './ExplanationText';
 
 export default function Quiz({ questions, mode = 'practice', onQuizComplete, onExit }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -173,7 +174,7 @@ export default function Quiz({ questions, mode = 'practice', onQuizComplete, onE
                   <HelpCircle size={16} color="#3B82F6" />
                   Explanation & Formula Breakdown
                 </div>
-                <div>{currentQ.explanation}</div>
+                <ExplanationText>{currentQ.explanation}</ExplanationText>
               </div>
             )}
           </div>
